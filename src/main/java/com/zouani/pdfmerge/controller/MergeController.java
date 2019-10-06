@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.core.io.InputStreamResource;
@@ -33,91 +34,33 @@ public class MergeController {
     private static File merged;
     private static final String UPLOADED_FOLDER = "\\tmp_merge";
 
-    @RequestMapping(value = "uploadMultipleFiles", method = RequestMethod.POST)
-    public String uploadMultipleFiles(@RequestParam("file") MultipartFile[] files)throws IOException {
+    @RequestMapping(value = "merge", method = RequestMethod.POST)
+    public String uploadMultipleFiles(@RequestParam("file") MultipartFile[] files) throws IOException {
 
-        String status = "";
         File dir = new File(UPLOADED_FOLDER);
         for (int i = 0; i < files.length; i++) {
             MultipartFile file = files[i];
-            
-            try {
-                byte[] bytes = file.getBytes();
-
-                if (!dir.exists())
-                    dir.mkdirs();
-
-                File uploadFile = new File(dir.getAbsolutePath()
-                        + File.separator + file.getOriginalFilename());
-                BufferedOutputStream outputStream = new BufferedOutputStream(
-                        new FileOutputStream(uploadFile));
-                outputStream.write(bytes);
-                outputStream.close();
-
-                status = status + "You successfully uploaded file=" + file.getOriginalFilename();
-            } catch (Exception e) {
-                status = status + "Failed to upload " + file.getOriginalFilename()+ " " + e.getMessage();
+            byte[] bytes = file.getBytes();
+            if (!dir.exists()) {
+                dir.mkdirs();
             }
+            File uploadFile = new File(dir.getAbsolutePath()
+                    + File.separator + file.getOriginalFilename());
+            BufferedOutputStream outputStream = new BufferedOutputStream(
+                    new FileOutputStream(uploadFile));
+            outputStream.write(bytes);
+            outputStream.close();
         }
-        System.out.println(dir.getAbsolutePath());
-        File[] fills = dir.listFiles();
-        File mergedFile = File.createTempFile("merged_pdf", ".pdf");
-        PDFMergerUtility PDFmerger = new PDFMergerUtility();
-        PDFmerger.setDestinationFileName(mergedFile.getAbsolutePath());
-        for (File fill : fills) {
-            System.out.println(fill.getAbsolutePath());
-            PDDocument doc = PDDocument.load(fill);
-            PDFmerger.addSource(fill);
-            doc.close();
-        }
-         PDFmerger.mergeDocuments();
-        System.out.println(mergedFile.getAbsolutePath());
-        merged = mergedFile;
-        dir.delete();
-
+        mergePdfsFromDir(dir);
+        removeDirWithContent(dir);
         return "download";
-        
     }
 
-//    @RequestMapping(value = "download")
-//    public String index(Model model) {
-//        model.addAttribute("title", "download");
-//        return "download";
-//    }
     @RequestMapping(value = "upload")
     public String upload(Model model) {
         return "upload";
     }
 
-//    @RequestMapping(value = "merge", method = RequestMethod.POST)
-//    public String showFiles(@RequestParam List<String> pdfs) throws IOException {
-//        for (String file : pdfs) {
-//            System.out.println("haaa l origine => " + file);
-//        }
-//    
-//        return "test";
-//       File mergedFile = File.createTempFile("merged_pdf", ".pdf"); 
-//       PDFMergerUtility PDFmerger = new PDFMergerUtility();
-//       PDFmerger.setDestinationFileName(mergedFile.getAbsolutePath());
-//       
-////        for (File file : pdfs) {
-////            System.out.println("haaa l origine"+file.getAbsolutePath());
-////        }
-//
-////        for (File file : pdfs) {
-////            File filee = new File(file.getAbsolutePath());
-//            
-//            PDDocument doc = PDDocument.load(pdfs.getResource().getFile());
-//            PDFmerger.addSource(pdfs.getResource().getFile());
-//            doc.close();
-////        }
-//        
-//        PDFmerger.mergeDocuments();
-//        System.out.println(mergedFile.getAbsolutePath());
-//        merged = mergedFile;
-//
-//        return "redirect:\\download";
-//    }
     @RequestMapping(value = "download", method = RequestMethod.POST)
     public ResponseEntity<Object> download() throws IOException {
         InputStreamResource resource = new InputStreamResource(new FileInputStream(merged));
@@ -127,7 +70,30 @@ public class MergeController {
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
         ResponseEntity<Object> responseEntity = ResponseEntity.ok().headers(headers).contentLength(merged.length()).contentType(MediaType.parseMediaType("application/pdf")).body(resource);
-        
+
         return responseEntity;
+    }
+
+    private Boolean removeDirWithContent(File dir) {
+        String[] entries = dir.list();
+        for (String s : entries) {
+            File currentFile = new File(dir.getPath(), s);
+            currentFile.delete();
+        }
+        return dir.delete();
+    }
+
+    private void mergePdfsFromDir(File dir) throws IOException {
+        File[] fills = dir.listFiles();
+        File mergedFile = File.createTempFile("merged_pdf", ".pdf");
+        PDFMergerUtility PDFmerger = new PDFMergerUtility();
+        PDFmerger.setDestinationFileName(mergedFile.getAbsolutePath());
+        for (File fill : fills) {
+            PDDocument doc = PDDocument.load(fill);
+            PDFmerger.addSource(fill);
+            doc.close();
+        }
+        PDFmerger.mergeDocuments();
+        merged = mergedFile;
     }
 }

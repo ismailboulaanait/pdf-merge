@@ -6,19 +6,25 @@ and open the template in the editor.
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org/">
     <head>
-        <title>TODO supply a title</title>
+        <title>Merge</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script type="text/javascript" src="main.js"></script>
     </head>
     <body>
-       
-        <form method="POST" enctype="multipart/form-data" action="uploadMultipleFiles" >
-            <input type="file" name="file" multiple>
-            <input type="submit" value="Merge">
-        </form>
-        
-        
+        <div>
+            <form method="POST" enctype="multipart/form-data" action="merge" id="form" >
+                <fieldset id="buildyourform">
+                    <legend> les PDFs à fusionner </legend>
+                </fieldset>
+                <input type="button" value="Ajouter PDF" class="add" id="add" />
+                <input type="submit" value="Fusionner"><br>
+            </form>
+        </div>
+
+
+
     </body>
 </html>
 
-<!--enctype="multipart/form-data"--->
