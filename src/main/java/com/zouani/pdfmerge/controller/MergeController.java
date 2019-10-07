@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -32,11 +33,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class MergeController {
 
     private static File merged;
-    private static final String UPLOADED_FOLDER = "\\tmp_merge";
+    private static String UPLOADED_FOLDER = "\\tmp_merge" + System.currentTimeMillis();
 
     @RequestMapping(value = "merge", method = RequestMethod.POST)
-    public String uploadMultipleFiles(@RequestParam("file") MultipartFile[] files) throws IOException {
-
+    public ResponseEntity<Object> uploadMultipleFiles(@RequestParam("file") MultipartFile[] files, Model model) throws IOException {
+        //_______________________Upload All Files________________________________
         File dir = new File(UPLOADED_FOLDER);
         for (int i = 0; i < files.length; i++) {
             MultipartFile file = files[i];
@@ -50,18 +51,27 @@ public class MergeController {
                     new FileOutputStream(uploadFile));
             outputStream.write(bytes);
             outputStream.close();
+        //______________________Rename Each File_________________________________
+
+            File newFile = new File(uploadFile.getParent(), "new-file-" + i + ".pdf");
+            Files.move(uploadFile.toPath(), newFile.toPath());
         }
+        //_____________merge files from uploaded dir
         mergePdfsFromDir(dir);
+        //________________remove uploaded dir___________
         removeDirWithContent(dir);
-        return "download";
+        //model.addAttribute("isHidden", "false");
+        return download();
+//        return "upload";
     }
 
     @RequestMapping(value = "upload")
     public String upload(Model model) {
+        model.addAttribute("isHidden", "true");
         return "upload";
     }
 
-    @RequestMapping(value = "download", method = RequestMethod.POST)
+    //@RequestMapping(value = "download", method = RequestMethod.POST)
     public ResponseEntity<Object> download() throws IOException {
         InputStreamResource resource = new InputStreamResource(new FileInputStream(merged));
         HttpHeaders headers = new HttpHeaders();

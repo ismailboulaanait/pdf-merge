@@ -13,16 +13,27 @@ and open the template in the editor.
         <script type="text/javascript" src="main.js"></script>
     </head>
     <body>
-        <div>
-            <form method="POST" enctype="multipart/form-data" action="merge" id="form" >
-                <fieldset id="buildyourform">
-                    <legend> les PDFs à fusionner </legend>
-                </fieldset>
-                <input type="button" value="Ajouter PDF" class="add" id="add" />
-                <input type="submit" value="Fusionner"><br>
-            </form>
-        </div>
 
+        
+                <form method="POST" enctype="multipart/form-data" action="merge" id="form" class="form-group" >
+                        <fieldset id="buildyourform">
+                            <legend>les document à fusionner </legend>
+                        </fieldset>
+                            <input type="button" value="Ajouter un nouveau document administratif" class="add" id="add" />
+                            <input type="submit" value="Fusionner"><br>
+                </form>
+ 
+        <!--        <div class="card card-primary">
+                    <form method="POST" enctype="multipart/form-data" action="merge" id="form" >
+                        <fieldset id="buildyourform">
+                            <legend> les PDFs à fusionner </legend>
+                        </fieldset>
+                        <input type="button" value="Ajouter un nouveau document administratif" class="add" id="add" />
+                        <input type="submit" value="Fusionner"><br>
+                    </form>
+                </div>-->
+
+      
 
 
     </body>
